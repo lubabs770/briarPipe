@@ -3,12 +3,18 @@
 **be your own newsboy!**
 
 briarPipe turns a repo + your own AI provider key into a personal, AI-curated
-newspaper. You describe your interests once; on a schedule it reads from a source
+newspaper. You describe your interests once;
+
+on a schedule it reads from a source
 base *it maintains for you*, writes an edition in the voice you choose, and delivers
-it. It never aimlessly scrapes the web — a configurable slice of the token budget
+it. 
+
+It never aimlessly scrapes the web — a configurable slice of the token budget
 (default ~1/5) is spent **cultivating** the source base, the rest **curating** from it.
 
----
+
+
+<br>
 
 ## Quick start
 
@@ -17,6 +23,8 @@ it. It never aimlessly scrapes the web — a configurable slice of the token bud
 ```sh
 curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh | bash
 ```
+
+<br>
 
 This serves the form on `localhost` and opens it. Fill it in, then save the result
 as **`config.yml`** in your fork and commit it. (Prefer editing by hand? Copy
@@ -30,7 +38,7 @@ Keys live in secrets/env vars only — **never** in `config.yml`.
 when an edition is due. Each edition is committed to [`editions/`](editions/) and
 sent through your chosen delivery gateway.
 
----
+<br>
 
 ## How it works
 

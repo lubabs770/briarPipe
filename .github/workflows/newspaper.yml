@@ -35,7 +35,9 @@ jobs:
 
       - name: Curate and publish
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Your provider key. The default provider.api_key_env is LLM_API_KEY;
+          # if you point it at a different var, rename this to match.
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           # Optional email delivery — only needed if delivery.gateway is "email":
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}

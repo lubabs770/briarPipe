@@ -1,9 +1,8 @@
 # briarPipe runtime dependencies
 feedparser>=6.0        # RSS/Atom parsing
 trafilatura>=1.8       # readable article-text extraction
-httpx>=0.27            # HTTP fetching (feed discovery, pages)
+httpx>=0.27            # HTTP fetching + the OpenAI-compatible provider client
 PyYAML>=6.0            # config + source-base serialization
-anthropic>=0.40        # reference AI provider (others are optional add-ons)
 
 # Dev / test only
 pytest>=8.0

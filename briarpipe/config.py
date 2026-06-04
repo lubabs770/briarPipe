@@ -23,11 +23,11 @@ VALID_SUMMARY_LENGTHS = ("short", "medium", "long")
 
 # Friendly lowercase names a user (or the form) can put in the ``secrets:`` block,
 # mapped to the environment-variable names the providers/gateways actually read.
-# Anything not listed here is passed through unchanged (so ``ANTHROPIC_API_KEY:``
-# works directly too).
+# Anything not listed here is passed through unchanged (so a custom var like
+# ``OPENROUTER_API_KEY:`` works directly too — just point provider.api_key_env at it).
 SECRET_ENV_ALIASES = {
-    "anthropic_api_key": "ANTHROPIC_API_KEY",
-    "openai_api_key": "OPENAI_API_KEY",
+    "api_key": "LLM_API_KEY",
+    "llm_api_key": "LLM_API_KEY",
     "smtp_host": "SMTP_HOST",
     "smtp_port": "SMTP_PORT",
     "smtp_user": "SMTP_USER",
@@ -57,8 +57,13 @@ class TokenBudget:
 
 @dataclass
 class Provider:
-    name: str = "anthropic"
-    model: str = "claude-sonnet-4-6"
+    # Bring your own: any OpenAI-compatible endpoint. `name` selects the client
+    # (default the generic one); `base_url` + `model` are yours to choose; the key
+    # is read from the env var named by `api_key_env` (or config secrets:).
+    name: str = "openai-compatible"
+    model: str = ""
+    base_url: str = ""
+    api_key_env: str = "LLM_API_KEY"
 
 
 @dataclass
@@ -144,8 +149,11 @@ class Config:
         if not isinstance(prov_raw, dict):
             raise ConfigError("'provider' must be a mapping")
         provider = Provider(
-            name=str(prov_raw.get("name", "anthropic")).lower(),
-            model=str(prov_raw.get("model", "claude-sonnet-4-6")),
+            name=str(prov_raw.get("name", "openai-compatible")).lower(),
+            model=str(prov_raw.get("model", "")).strip(),
+            base_url=str(prov_raw.get("base_url", "")).strip(),
+            api_key_env=str(prov_raw.get("api_key_env", "LLM_API_KEY")).strip()
+            or "LLM_API_KEY",
         )
 
         del_raw = data.get("delivery") or {}

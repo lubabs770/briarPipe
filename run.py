@@ -8,10 +8,12 @@ Run it however your host likes (GitHub Actions, cron, Docker, a laptop):
     python run.py --config my.yml # use a specific config
     python run.py --store git     # commit results back (CI)
 
-Secrets (e.g. ANTHROPIC_API_KEY, SMTP_*) normally come from the environment. For a
-one-file local setup you may instead put them in a ``secrets:`` block in config.yml —
-but the environment always wins, and such a file must never be committed (config.yml
-is gitignored by default). The store defaults to the local filesystem; pass
+Bring your own provider: point ``provider.base_url`` at any OpenAI-compatible
+endpoint and set your key in ``LLM_API_KEY`` (or whatever ``provider.api_key_env``
+names). Secrets (the key, SMTP_*) normally come from the environment; for a one-file
+local setup you may instead put them in a ``secrets:`` block in config.yml — but the
+environment always wins, and such a file must never be committed (config.yml is
+gitignored by default). The store defaults to the local filesystem; pass
 ``--store git`` (or set BRIARPIPE_STORE=git) on a host that should commit back.
 """
 
@@ -55,8 +57,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"not due (frequency={config.frequency}, last={last or 'never'}); skipping")
         return 0
 
+    prov = config.provider
     try:
-        provider = get_provider(config.provider.name, config.provider.model)
+        provider = get_provider(
+            prov.name,
+            prov.model,
+            base_url=prov.base_url,
+            api_key=os.environ.get(prov.api_key_env),
+        )
     except ValueError as exc:
         print(f"provider error: {exc}", file=sys.stderr)
         return 2

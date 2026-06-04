@@ -1,10 +1,11 @@
-"""AI provider abstraction.
+"""AI provider abstraction — bring your own key.
 
-The pipeline only ever talks to a :class:`Provider`. Concrete providers wrap a
-vendor SDK and, crucially, report token usage per call so the pipeline can hold
-each phase to its slice of the budget. Adding a new provider is a matter of
-implementing :meth:`Provider.complete` and registering it — the pipeline never
-changes.
+The pipeline only ever talks to a :class:`Provider`. The built-in provider is a
+generic **OpenAI-compatible** client (see :mod:`.openai_compatible`) that works
+against any endpoint speaking the ``/chat/completions`` API — no vendor is special.
+Providers report token usage per call so the pipeline can hold each phase to its
+slice of the budget. Adding another provider is a matter of implementing
+:meth:`Provider.complete` and registering it — the pipeline never changes.
 """
 
 from __future__ import annotations
@@ -46,32 +47,37 @@ class Provider(Protocol):
         ...
 
 
-# name -> factory(model) -> Provider
-_REGISTRY: dict[str, Callable[[str], Provider]] = {}
+# name -> factory(model, base_url, api_key) -> Provider
+ProviderFactory = Callable[[str, str, "str | None"], Provider]
+_REGISTRY: dict[str, ProviderFactory] = {}
 
 
-def register_provider(name: str, factory: Callable[[str], Provider]) -> None:
+def register_provider(name: str, factory: ProviderFactory) -> None:
     _REGISTRY[name.lower()] = factory
 
 
-def get_provider(name: str, model: str) -> Provider:
+def get_provider(
+    name: str, model: str, *, base_url: str = "", api_key: str | None = None
+) -> Provider:
     key = name.lower()
     if key not in _REGISTRY:
         raise ValueError(
             f"unknown provider {name!r}; available: {sorted(_REGISTRY)}"
         )
-    return _REGISTRY[key](model)
+    return _REGISTRY[key](model, base_url, api_key)
 
 
-# Register built-in providers. Imports are guarded so the package still loads
-# (e.g. for tests) when an optional SDK isn't installed.
+# The built-in is the generic OpenAI-compatible client; it needs no SDK (just
+# httpx, used lazily), so registration is unconditional. Register it under a few
+# friendly aliases that all mean "an endpoint that speaks /chat/completions".
 def _register_builtins() -> None:
-    try:
-        from .anthropic import AnthropicProvider
+    from .openai_compatible import OpenAICompatibleProvider
 
-        register_provider("anthropic", lambda model: AnthropicProvider(model))
-    except Exception:  # pragma: no cover - optional dependency missing
-        pass
+    def factory(model: str, base_url: str, api_key: str | None) -> Provider:
+        return OpenAICompatibleProvider(model, base_url=base_url, api_key=api_key)
+
+    for alias in ("openai-compatible", "openai", "generic"):
+        register_provider(alias, factory)
 
 
 _register_builtins()

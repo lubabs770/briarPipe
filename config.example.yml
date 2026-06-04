@@ -43,11 +43,15 @@ bootstrap_sources:
   - https://news.ycombinator.com/
   - https://lobste.rs/
 
-# Which AI provider writes your paper. The API key is read from an env var /
-# secret (e.g. ANTHROPIC_API_KEY), never from this file.
+# Which AI writes your paper — bring your own. `base_url` is any OpenAI-compatible
+# endpoint (OpenAI, OpenRouter, Groq, Together, Mistral, DeepSeek, a local Ollama,
+# or Anthropic's OpenAI-compatible endpoint). The key is read from the env var named
+# by `api_key_env` (or the secrets: block below), never inline here.
 provider:
-  name: anthropic
-  model: claude-sonnet-4-6
+  name: openai-compatible
+  base_url: https://api.openai.com/v1   # e.g. https://openrouter.ai/api/v1, http://localhost:11434/v1
+  model: gpt-4o-mini                    # whatever model your endpoint serves
+  api_key_env: LLM_API_KEY              # env var holding your key
 
 # How the finished edition reaches you. A dated Markdown file is ALWAYS written
 # to editions/. Configure an extra gateway here for push delivery.
@@ -76,7 +80,7 @@ style: relaxed and curious, with a dry sense of humor
 # environment instead, which is what GitHub Actions should do.
 #
 # secrets:
-#   anthropic_api_key: sk-ant-...     # -> ANTHROPIC_API_KEY
+#   api_key: sk-...                   # -> LLM_API_KEY (your AI provider key)
 #   smtp_host: smtp.example.com       # -> SMTP_HOST   (email gateway)
 #   smtp_port: 587                    # -> SMTP_PORT
 #   smtp_user: you@example.com        # -> SMTP_USER

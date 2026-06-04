@@ -29,11 +29,13 @@ opens it. Fill it in, save the result as **`config.yml`** in that clone, and com
 it. (Prefer editing by hand? Copy [`config.example.yml`](config.example.yml) to
 `config.yml`.)
 
-**2. Add your AI key.** Two ways (see [Secrets](#secrets) for the trade-off):
+**2. Add your AI key.** briarPipe is **bring-your-own-provider** — point
+`provider.base_url` at any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq,
+Together, a local Ollama, …) and supply a key. Two ways (see [Secrets](#secrets)):
 - **Local / cron / Docker:** drop it in the `secrets:` block of `config.yml` (the
-  form has fields for it). `config.yml` is gitignored, so it stays off GitHub.
+  form has a field for it). `config.yml` is gitignored, so it stays off GitHub.
 - **GitHub Actions:** add it as an Actions secret —
-  *Settings → Secrets and variables → Actions →* `ANTHROPIC_API_KEY` — and keep
+  *Settings → Secrets and variables → Actions →* `LLM_API_KEY` — and keep
   `secrets:` out of the committed file.
 
 **3. Let it run.** The included GitHub Actions workflow runs daily and publishes
@@ -68,16 +70,32 @@ fields: `interests`, `frequency` (daily/weekly/monthly), `token_budget`
 (`max_per_run`, `cultivation_fraction`), `bootstrap_sources`, `provider`, `delivery`,
 `output`, and `style` (your editor's voice).
 
+### Provider — bring your own
+
+There's no built-in vendor. The provider is a generic **OpenAI-compatible** client,
+so any endpoint that speaks `/chat/completions` works — just set three fields:
+
+```yaml
+provider:
+  name: openai-compatible
+  base_url: https://api.openai.com/v1   # or OpenRouter, Groq, Together, Ollama, …
+  model: gpt-4o-mini                    # whatever your endpoint serves
+  api_key_env: LLM_API_KEY              # env var your key lives in
+```
+
+Switching providers (or to a local model) is a `base_url` + `model` change — no code,
+no extra dependency.
+
 ## Secrets
 
 briarPipe reads secrets (the AI key, SMTP credentials) from **environment
-variables** — `ANTHROPIC_API_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`,
-`SMTP_PASS`, `SMTP_FROM`. For convenience you can instead keep them in a `secrets:`
-block right in `config.yml`:
+variables** — `LLM_API_KEY` (or whatever `provider.api_key_env` names), plus
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`. For convenience you
+can instead keep them in a `secrets:` block right in `config.yml`:
 
 ```yaml
 secrets:
-  anthropic_api_key: sk-ant-...     # -> ANTHROPIC_API_KEY
+  api_key: sk-...                   # -> LLM_API_KEY
   smtp_host: smtp.example.com
   smtp_user: you@example.com
   smtp_password: app-password

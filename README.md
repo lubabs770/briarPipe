@@ -5,7 +5,7 @@
 <br>
 
 
-## briarPipe turns a repo + your own AI provider key into a personal, AI-curatednewspaper. You describe your interests once; on a schedule it reads from a source base *it maintains for you*, writes an edition in the voice you choose, and delivers it. 
+## briarPipe turns a repo + your own AI provider key into a personal, AI-curated newspaper. You describe your interests once; on a schedule it reads from a source base *it maintains for you*, writes an edition in the voice you choose, and delivers it. 
 
 
 

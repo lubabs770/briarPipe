@@ -5,8 +5,8 @@
 <br>
 
 ### briarPipe turns a repo + your own AI provider key into a personal, AI-curated newspaper.
-### You describe your interests once; on a schedule it reads from a source base *it maintains for you*, writes an edition in the voice you choose, and delivers it. 
-### It never aimlessly scrapes the web — a configurable slice of the token budge (default ~1/5) is spent **cultivating** the source base, the rest **curating** from it.
+#### You describe your interests once; on a schedule it reads from a source base *it maintains for you*, writes an edition in the voice you choose, and delivers it. 
+#### It never aimlessly scrapes the web — a configurable slice of the token budge (default ~1/5) is spent **cultivating** the source base, the rest **curating** from it.
 [check out a demo ->](https://lubabs770.github.io/briarPipe/)
 
 
@@ -25,18 +25,12 @@ curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh
 <br>
 
 This clones the repo into `~/briarPipe`, then serves the form on `localhost` and
-opens it. Fill it in, save the result as **`config.yml`** in that clone, and commit
-it. (Prefer editing by hand? Copy [`config.example.yml`](config.example.yml) to
-`config.yml`.)
+opens it.
 
-**2. Add your AI key.** briarPipe is **bring-your-own-provider** — point
-`provider.base_url` at any OpenAI-compatible endpoint (OpenAI, OpenRouter, Groq,
-Together, a local Ollama, …) and supply a key. Two ways (see [Secrets](#secrets)):
-- **Local / cron / Docker:** drop it in the `secrets:` block of `config.yml` (the
-  form has a field for it). `config.yml` is gitignored, so it stays off GitHub.
-- **GitHub Actions:** add it as an Actions secret —
-  *Settings → Secrets and variables → Actions →* `LLM_API_KEY` — and keep
-  `secrets:` out of the committed file.
+Fill it in, save the result as **`config.yml`** in that clone, and commit
+it. 
+
+(Prefer editing by hand? Copy [`config.example.yml`](config.example.yml) to `config.yml`.)
 
 **3. Let it run.** The included GitHub Actions workflow runs daily and publishes
 when an edition is due. Each edition is committed to [`editions/`](editions/) and
@@ -70,10 +64,7 @@ fields: `interests`, `frequency` (daily/weekly/monthly), `token_budget`
 (`max_per_run`, `cultivation_fraction`), `bootstrap_sources`, `provider`, `delivery`,
 `output`, and `style` (your editor's voice).
 
-### Provider — bring your own
-
-There's no built-in vendor. The provider is a generic **OpenAI-compatible** client,
-so any endpoint that speaks `/chat/completions` works — just set three fields:
+## bring your own provider
 
 ```yaml
 provider:
@@ -83,14 +74,24 @@ provider:
   api_key_env: LLM_API_KEY              # env var your key lives in
 ```
 
-Switching providers (or to a local model) is a `base_url` + `model` change — no code,
-no extra dependency.
 
 ## Secrets
 
 briarPipe reads secrets (the AI key, SMTP credentials) from **environment
-variables** — `LLM_API_KEY` (or whatever `provider.api_key_env` names), plus
-`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`. For convenience you
+variables** — `LLM_API_KEY` (or whatever `provider.api_key_env` names), 
+
+plus
+`SMTP_HOST`, 
+
+`SMTP_PORT`, 
+
+`SMTP_USER`,
+
+`SMTP_PASS`, 
+
+`SMTP_FROM`. 
+
+For convenience you
 can instead keep them in a `secrets:` block right in `config.yml`:
 
 ```yaml
@@ -100,6 +101,7 @@ secrets:
   smtp_user: you@example.com
   smtp_password: app-password
 ```
+<br>
 
 Two rules make this safe:
 
@@ -107,6 +109,8 @@ Two rules make this safe:
   matching variable is unset — so Actions secrets transparently override the file.
 - **A file with real secrets is never committed.** `config.yml` is **gitignored by
   default** for exactly this reason; `config.example.yml` is the committed template.
+
+  
 
 **Pick your path:**
 

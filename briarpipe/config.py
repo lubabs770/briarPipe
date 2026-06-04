@@ -1,12 +1,17 @@
 """Load and validate a briarPipe ``config.yml``.
 
 The config is the single source of truth for an edition: what to cover, how often,
-how much to spend, who writes it and in what voice, and where it goes. API keys are
-deliberately *not* part of the config — they come from the environment.
+how much to spend, who writes it and in what voice, and where it goes.
+
+API keys may optionally live in an OPTIONAL ``secrets:`` block for a one-file local
+setup, but the real environment / Actions secrets ALWAYS take precedence (see
+:meth:`Config.apply_secrets_to_env`). A file that carries real secrets must never be
+committed — ``config.yml`` is gitignored by default for exactly that reason.
 """
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -15,6 +20,21 @@ import yaml
 
 VALID_FREQUENCIES = ("daily", "weekly", "monthly")
 VALID_SUMMARY_LENGTHS = ("short", "medium", "long")
+
+# Friendly lowercase names a user (or the form) can put in the ``secrets:`` block,
+# mapped to the environment-variable names the providers/gateways actually read.
+# Anything not listed here is passed through unchanged (so ``ANTHROPIC_API_KEY:``
+# works directly too).
+SECRET_ENV_ALIASES = {
+    "anthropic_api_key": "ANTHROPIC_API_KEY",
+    "openai_api_key": "OPENAI_API_KEY",
+    "smtp_host": "SMTP_HOST",
+    "smtp_port": "SMTP_PORT",
+    "smtp_user": "SMTP_USER",
+    "smtp_pass": "SMTP_PASS",
+    "smtp_password": "SMTP_PASS",
+    "smtp_from": "SMTP_FROM",
+}
 
 
 class ConfigError(ValueError):
@@ -70,6 +90,32 @@ class Config:
     delivery: Delivery = field(default_factory=Delivery)
     output: Output = field(default_factory=Output)
     style: str = "clear and neutral"
+    # Optional inline secrets for a one-file local setup. Empty unless the user
+    # opts in. Never the canonical source — the environment wins (see below).
+    secrets: dict[str, str] = field(default_factory=dict)
+
+    def secret_env(self) -> dict[str, str]:
+        """Resolve the configured secrets to ``ENV_NAME -> value`` pairs."""
+        return {
+            SECRET_ENV_ALIASES.get(key.lower(), key): value
+            for key, value in self.secrets.items()
+        }
+
+    def apply_secrets_to_env(self, environ: dict[str, str] | None = None) -> list[str]:
+        """Fill missing env vars from the config's ``secrets`` block.
+
+        The real environment (e.g. GitHub Actions secrets) always wins — values
+        here are only applied where the variable is unset/empty. Returns the names
+        that were actually applied, for logging. Providers and delivery gateways
+        keep reading from the environment and never see the config file directly.
+        """
+        env = os.environ if environ is None else environ
+        applied: list[str] = []
+        for name, value in self.secret_env().items():
+            if not env.get(name):
+                env[name] = value
+                applied.append(name)
+        return applied
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Config":
@@ -140,6 +186,7 @@ class Config:
             output=output,
             style=str(data.get("style", "clear and neutral")).strip()
             or "clear and neutral",
+            secrets=_secrets(data.get("secrets")),
         )
 
 
@@ -178,6 +225,21 @@ def _fraction(d: dict[str, Any], key: str, default: float) -> float:
     if not 0.0 <= value <= 1.0:
         raise ConfigError(f"'{key}' must be between 0 and 1, got {value}")
     return value
+
+
+def _secrets(value: Any) -> dict[str, str]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ConfigError("'secrets' must be a mapping of name: value")
+    out: dict[str, str] = {}
+    for key, val in value.items():
+        if val is None:
+            continue
+        text = str(val).strip()
+        if text:
+            out[str(key)] = text
+    return out
 
 
 def _str_list(value: Any, default: list[str]) -> list[str]:

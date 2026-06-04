@@ -1,9 +1,15 @@
 # briarPipe configuration — be your own newsboy!
 #
 # This file is normally produced for you by the form (run ./install.sh, or open
-# form/index.html), but you can also edit it by hand. Copy it to `config.yml` and
-# commit that. API keys never live here — they come from environment variables /
-# Actions secrets (see README).
+# form/index.html), but you can also edit it by hand. Copy it to `config.yml`.
+#
+# Secrets: you can keep API keys / SMTP creds in this file (see the `secrets:`
+# block at the bottom) for a simple one-file local setup — but then DO NOT commit
+# it. `config.yml` is gitignored by default for that reason, and the environment /
+# Actions secrets always take precedence over anything in `secrets:`.
+#   • Local / cron / Docker: easiest to fill in `secrets:` and never push the file.
+#   • GitHub Actions: leave `secrets:` out, set them as Actions secrets, then
+#     commit the keyless config with `git add -f config.yml`. (See README.)
 
 # What you want your paper to cover. Free text + optional topic tags; the more
 # specific, the better the curation.
@@ -61,3 +67,18 @@ output:
 # Voice of your AI editor. Free text — write it however you'd enjoy reading it.
 # e.g. "funny", "relaxed and conversational", "stiff & formal", "80's radio DJ".
 style: relaxed and curious, with a dry sense of humor
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Secrets (OPTIONAL). Only read when the matching environment variable is unset —
+# the environment / Actions secrets always win. Filling these in makes for a tidy
+# one-file local setup, but a file with real values here MUST NOT be committed.
+# Leave the whole block commented out (the default) to source secrets from the
+# environment instead, which is what GitHub Actions should do.
+#
+# secrets:
+#   anthropic_api_key: sk-ant-...     # -> ANTHROPIC_API_KEY
+#   smtp_host: smtp.example.com       # -> SMTP_HOST   (email gateway)
+#   smtp_port: 587                    # -> SMTP_PORT
+#   smtp_user: you@example.com        # -> SMTP_USER
+#   smtp_password: app-password       # -> SMTP_PASS
+#   smtp_from: you@example.com        # -> SMTP_FROM

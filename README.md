@@ -29,9 +29,12 @@ opens it. Fill it in, save the result as **`config.yml`** in that clone, and com
 it. (Prefer editing by hand? Copy [`config.example.yml`](config.example.yml) to
 `config.yml`.)
 
-**2. Add your AI key** as a secret. On GitHub:
-*Settings → Secrets and variables → Actions →* `ANTHROPIC_API_KEY`.
-Keys live in secrets/env vars only — **never** in `config.yml`.
+**2. Add your AI key.** Two ways (see [Secrets](#secrets) for the trade-off):
+- **Local / cron / Docker:** drop it in the `secrets:` block of `config.yml` (the
+  form has fields for it). `config.yml` is gitignored, so it stays off GitHub.
+- **GitHub Actions:** add it as an Actions secret —
+  *Settings → Secrets and variables → Actions →* `ANTHROPIC_API_KEY` — and keep
+  `secrets:` out of the committed file.
 
 **3. Let it run.** The included GitHub Actions workflow runs daily and publishes
 when an edition is due. Each edition is committed to [`editions/`](editions/) and
@@ -64,6 +67,37 @@ See [`config.example.yml`](config.example.yml) for the full, commented schema. K
 fields: `interests`, `frequency` (daily/weekly/monthly), `token_budget`
 (`max_per_run`, `cultivation_fraction`), `bootstrap_sources`, `provider`, `delivery`,
 `output`, and `style` (your editor's voice).
+
+## Secrets
+
+briarPipe reads secrets (the AI key, SMTP credentials) from **environment
+variables** — `ANTHROPIC_API_KEY`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`,
+`SMTP_PASS`, `SMTP_FROM`. For convenience you can instead keep them in a `secrets:`
+block right in `config.yml`:
+
+```yaml
+secrets:
+  anthropic_api_key: sk-ant-...     # -> ANTHROPIC_API_KEY
+  smtp_host: smtp.example.com
+  smtp_user: you@example.com
+  smtp_password: app-password
+```
+
+Two rules make this safe:
+
+- **The environment always wins.** Values in `secrets:` are only used when the
+  matching variable is unset — so Actions secrets transparently override the file.
+- **A file with real secrets is never committed.** `config.yml` is **gitignored by
+  default** for exactly this reason; `config.example.yml` is the committed template.
+
+**Pick your path:**
+
+| Host | What to do |
+| --- | --- |
+| Laptop / cron / Docker | Fill in `secrets:` (the form has fields). Never push `config.yml`. |
+| **GitHub Actions** | 1) Set keys as **Actions secrets**, not in the file. 2) Leave `secrets:` out of `config.yml`. 3) Commit the keyless config explicitly: `git add -f config.yml` (it's gitignored). |
+
+Either way, **do not put real keys in a file you then commit to a public repo.**
 
 ## Running anywhere
 

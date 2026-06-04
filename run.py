@@ -8,9 +8,11 @@ Run it however your host likes (GitHub Actions, cron, Docker, a laptop):
     python run.py --config my.yml # use a specific config
     python run.py --store git     # commit results back (CI)
 
-Secrets (e.g. ANTHROPIC_API_KEY, SMTP_*) come from the environment, never config.
-The store defaults to the local filesystem; pass ``--store git`` (or set
-BRIARPIPE_STORE=git) on a host that should commit editions back.
+Secrets (e.g. ANTHROPIC_API_KEY, SMTP_*) normally come from the environment. For a
+one-file local setup you may instead put them in a ``secrets:`` block in config.yml —
+but the environment always wins, and such a file must never be committed (config.yml
+is gitignored by default). The store defaults to the local filesystem; pass
+``--store git`` (or set BRIARPIPE_STORE=git) on a host that should commit back.
 """
 
 from __future__ import annotations
@@ -37,6 +39,12 @@ def main(argv: list[str] | None = None) -> int:
     except ConfigError as exc:
         print(f"config error: {exc}", file=sys.stderr)
         return 2
+
+    # Environment / Actions secrets win; the config's `secrets:` block only fills
+    # gaps. Log names (never values) so it's clear where a key came from.
+    applied = config.apply_secrets_to_env()
+    if applied:
+        print(f"using {len(applied)} secret(s) from config.yml: {', '.join(sorted(applied))}")
 
     store_name = args.store or os.environ.get("BRIARPIPE_STORE", "local")
     store = get_store(store_name, root=args.root)

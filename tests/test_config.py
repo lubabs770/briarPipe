@@ -92,3 +92,57 @@ def test_negative_max_per_run_rejected(tmp_path):
 def test_missing_file_rejected(tmp_path):
     with pytest.raises(ConfigError, match="not found"):
         load_config(tmp_path / "nope.yml")
+
+
+def test_secrets_default_empty(tmp_path):
+    cfg = load_config(_write(tmp_path, "interests: x\n"))
+    assert cfg.secrets == {}
+    assert cfg.secret_env() == {}
+
+
+def test_secrets_resolve_to_env_names(tmp_path):
+    cfg = load_config(
+        _write(
+            tmp_path,
+            """
+            interests: x
+            secrets:
+              anthropic_api_key: sk-test
+              smtp_password: hunter2
+              CUSTOM_TOKEN: abc
+            """,
+        )
+    )
+    env = cfg.secret_env()
+    assert env["ANTHROPIC_API_KEY"] == "sk-test"
+    assert env["SMTP_PASS"] == "hunter2"
+    assert env["CUSTOM_TOKEN"] == "abc"  # unknown keys pass through unchanged
+
+
+def test_blank_secret_values_are_dropped(tmp_path):
+    cfg = load_config(
+        _write(
+            tmp_path,
+            "interests: x\nsecrets:\n  anthropic_api_key: ''\n  smtp_host: ~\n",
+        )
+    )
+    assert cfg.secrets == {}
+
+
+def test_apply_secrets_does_not_override_environment(tmp_path):
+    cfg = load_config(
+        _write(
+            tmp_path,
+            "interests: x\nsecrets:\n  anthropic_api_key: from-file\n  smtp_user: u@x\n",
+        )
+    )
+    env = {"ANTHROPIC_API_KEY": "from-env"}  # already set -> must win
+    applied = cfg.apply_secrets_to_env(env)
+    assert env["ANTHROPIC_API_KEY"] == "from-env"  # untouched
+    assert env["SMTP_USER"] == "u@x"  # gap filled
+    assert applied == ["SMTP_USER"]
+
+
+def test_secrets_must_be_mapping(tmp_path):
+    with pytest.raises(ConfigError, match="secrets"):
+        load_config(_write(tmp_path, "interests: x\nsecrets:\n  - nope\n"))

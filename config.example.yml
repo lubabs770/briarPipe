@@ -1,0 +1,63 @@
+# briarPipe configuration — be your own newsboy!
+#
+# This file is normally produced for you by the form (run ./install.sh, or open
+# form/index.html), but you can also edit it by hand. Copy it to `config.yml` and
+# commit that. API keys never live here — they come from environment variables /
+# Actions secrets (see README).
+
+# What you want your paper to cover. Free text + optional topic tags; the more
+# specific, the better the curation.
+interests: |
+  Self-hosted software, the indie web, and small-scale open source.
+  Especially: tools that respect user ownership of their data.
+topics:
+  - self-hosting
+  - open source
+  - indie web
+
+# How often a new edition is published: daily | weekly | monthly.
+# This is config-driven — the host only needs to invoke run.py on some regular
+# tick (e.g. daily); briarPipe decides whether an edition is actually due.
+frequency: weekly
+
+language: en
+timezone: America/New_York
+edition_name: The Daily Briar
+
+# Token budget. `max_per_run` caps total model spend for a single edition.
+# `cultivation_fraction` is the slice spent growing/pruning your source base
+# (the rest goes to curating the actual paper). Default ~1/5.
+token_budget:
+  max_per_run: 120000
+  cultivation_fraction: 0.2
+
+# First-run seeds. When the source base is empty, briarPipe discovers feeds from
+# these sites to get you started. After that the base maintains itself.
+bootstrap_sources:
+  - https://news.ycombinator.com/
+  - https://lobste.rs/
+
+# Which AI provider writes your paper. The API key is read from an env var /
+# secret (e.g. ANTHROPIC_API_KEY), never from this file.
+provider:
+  name: anthropic
+  model: claude-sonnet-4-6
+
+# How the finished edition reaches you. A dated Markdown file is ALWAYS written
+# to editions/. Configure an extra gateway here for push delivery.
+delivery:
+  gateway: email          # email | markdown (markdown = repo file only)
+  to: you@example.com
+
+# Shape of each edition.
+output:
+  max_stories: 12
+  sections:
+    - Headlines
+    - Deep Dive
+    - Worth a Click
+  summary_length: medium  # short | medium | long
+
+# Voice of your AI editor. Free text — write it however you'd enjoy reading it.
+# e.g. "funny", "relaxed and conversational", "stiff & formal", "80's radio DJ".
+style: relaxed and curious, with a dry sense of humor

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>briarPipe — set up your paper</title>
+<style>
+  :root {
+    --ink: #20180f;
+    --paper: #f6f1e7;
+    --card: #fffdf8;
+    --rule: #d8cbb4;
+    --accent: #8a4b2f;
+    --accent-ink: #fff;
+    --muted: #7a6f5d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 16px/1.55 Georgia, "Iowan Old Style", "Times New Roman", serif;
+    padding: 2.5rem 1rem 4rem;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header { text-align: center; border-bottom: 3px double var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  header h1 { font-size: 2.6rem; margin: 0; letter-spacing: .5px; }
+  header p { margin: .35rem 0 0; font-style: italic; color: var(--muted); }
+  fieldset {
+    border: 1px solid var(--rule); border-radius: 8px; background: var(--card);
+    margin: 0 0 1.4rem; padding: 1.1rem 1.25rem 1.35rem;
+  }
+  legend { padding: 0 .5rem; font-weight: bold; font-variant: small-caps; letter-spacing: .5px; }
+  label { display: block; margin: .8rem 0 .25rem; font-weight: bold; font-size: .95rem; }
+  .hint { font-weight: normal; color: var(--muted); font-style: italic; font-size: .85rem; }
+  input, textarea, select {
+    width: 100%; padding: .55rem .65rem; border: 1px solid var(--rule); border-radius: 6px;
+    background: #fff; color: var(--ink); font: inherit; font-size: .95rem;
+  }
+  textarea { resize: vertical; min-height: 4.5rem; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .row > div { flex: 1 1 180px; }
+  .range-val { font-style: italic; color: var(--accent); }
+  .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin: 1.5rem 0 1rem; }
+  button {
+    font: inherit; font-size: .95rem; cursor: pointer; border-radius: 6px;
+    padding: .6rem 1.1rem; border: 1px solid var(--accent);
+  }
+  button.primary { background: var(--accent); color: var(--accent-ink); }
+  button.ghost { background: transparent; color: var(--accent); }
+  pre {
+    background: #2b2118; color: #f3ead9; padding: 1rem; border-radius: 8px;
+    overflow:auto; font: 13px/1.5 "SF Mono", Menlo, Consolas, monospace; white-space: pre;
+  }
+  .note { color: var(--muted); font-size: .85rem; font-style: italic; }
+  .ok { color: #2e6b3e; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>briarPipe</h1>
+    <p>be your own newsboy — set up your paper</p>
+  </header>
+
+  <form id="f">
+    <fieldset>
+      <legend>What to cover</legend>
+      <label>Your interests
+        <span class="hint">— free text. The more specific, the sharper the curation.</span></label>
+      <textarea id="interests" placeholder="Self-hosted software, the indie web, small open source — especially tools that respect data ownership.">Self-hosted software, the indie web, and small-scale open source.</textarea>
+
+      <label>Topic tags <span class="hint">— comma separated, optional</span></label>
+      <input id="topics" value="self-hosting, open source, indie web" />
+
+      <label>Bootstrap sources <span class="hint">— one URL per line. Used only on the first run to seed your source base.</span></label>
+      <textarea id="bootstrap" placeholder="https://news.ycombinator.com/">https://news.ycombinator.com/
+https://lobste.rs/</textarea>
+    </fieldset>
+
+    <fieldset>
+      <legend>Schedule &amp; voice</legend>
+      <div class="row">
+        <div>
+          <label>How often</label>
+          <select id="frequency">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div>
+          <label>Edition name</label>
+          <input id="edition_name" value="The Daily Briar" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Language</label>
+          <input id="language" value="en" />
+        </div>
+        <div>
+          <label>Timezone</label>
+          <input id="timezone" value="America/New_York" />
+        </div>
+      </div>
+      <label>Writing style / voice
+        <span class="hint">— how should your editor write? e.g. "funny", "relaxed", "stiff &amp; formal", "80's radio DJ".</span></label>
+      <input id="style" value="relaxed and curious, with a dry sense of humor" />
+    </fieldset>
+
+    <fieldset>
+      <legend>Budget</legend>
+      <div class="row">
+        <div>
+          <label>Max tokens per run</label>
+          <input id="max_per_run" type="number" min="1000" step="1000" value="120000" />
+        </div>
+        <div>
+          <label>Cultivation slice: <span class="range-val" id="cf_val">20%</span>
+            <span class="hint">— share of tokens spent growing/pruning your sources.</span></label>
+          <input id="cultivation_fraction" type="range" min="0" max="50" value="20" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Max stories</label>
+          <input id="max_stories" type="number" min="1" value="12" />
+        </div>
+        <div>
+          <label>Summary length</label>
+          <select id="summary_length">
+            <option>short</option><option selected>medium</option><option>long</option>
+          </select>
+        </div>
+      </div>
+      <label>Sections <span class="hint">— comma separated</span></label>
+      <input id="sections" value="Headlines, Deep Dive, Worth a Click" />
+    </fieldset>
+
+    <fieldset>
+      <legend>Editor &amp; delivery</legend>
+      <div class="row">
+        <div>
+          <label>AI provider</label>
+          <select id="provider_name"><option value="anthropic">Anthropic</option></select>
+          <p class="note">Key goes in a secret/env var (e.g. ANTHROPIC_API_KEY), never here.</p>
+        </div>
+        <div>
+          <label>Model</label>
+          <input id="provider_model" value="claude-sonnet-4-6" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Delivery</label>
+          <select id="gateway">
+            <option value="email">Email</option>
+            <option value="markdown">Repo file only</option>
+          </select>
+        </div>
+        <div>
+          <label>Send to <span class="hint">— for email</span></label>
+          <input id="to" type="email" value="you@example.com" />
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" class="primary" onclick="build()">Generate config.yml</button>
+      <button type="button" class="ghost" onclick="copyOut()">Copy</button>
+      <button type="button" class="ghost" onclick="download()">Download</button>
+      <span id="status" class="ok"></span>
+    </div>
+    <p class="note">Save the result as <code>config.yml</code> in your briarPipe repo and commit it.</p>
+    <pre id="out">Fill in the form and click “Generate config.yml”.</pre>
+  </form>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const cf = $("cultivation_fraction");
+  cf.addEventListener("input", () => { $("cf_val").textContent = cf.value + "%"; });
+
+  function lines(v) { return v.split("\n").map(s => s.trim()).filter(Boolean); }
+  function commas(v) { return v.split(",").map(s => s.trim()).filter(Boolean); }
+
+  // Minimal YAML emitter: double-quote scalars that need it, escaping quotes/backslashes.
+  function q(s) {
+    s = String(s);
+    if (/^[\w .,'/&:@-]+$/.test(s) && !/^\s|\s$/.test(s)) return s;
+    return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+  }
+  function block(label, text, indent) {
+    const pad = " ".repeat(indent + 2);
+    const body = text.split("\n").map(l => pad + l).join("\n");
+    return `${label}: |\n${body}`;
+  }
+  function list(label, items, indent) {
+    if (!items.length) return `${label}: []`;
+    const pad = " ".repeat(indent);
+    return `${label}:\n` + items.map(i => `${pad}- ${q(i)}`).join("\n");
+  }
+
+  function buildYaml() {
+    const interests = ($("interests").value || "").trim() || "general news";
+    const frac = (parseInt(cf.value, 10) / 100).toFixed(2);
+    const out = [];
+    out.push("# briarPipe configuration — generated by the setup form");
+    out.push("# API keys are NOT stored here; they come from secrets/env vars.");
+    out.push("");
+    out.push(block("interests", interests, 0));
+    out.push(list("topics", commas($("topics").value), 2));
+    out.push(`frequency: ${$("frequency").value}`);
+    out.push(`language: ${q($("language").value || "en")}`);
+    out.push(`timezone: ${q($("timezone").value || "UTC")}`);
+    out.push(`edition_name: ${q($("edition_name").value || "briarPipe")}`);
+    out.push("");
+    out.push("token_budget:");
+    out.push(`  max_per_run: ${parseInt($("max_per_run").value, 10) || 120000}`);
+    out.push(`  cultivation_fraction: ${frac}`);
+    out.push("");
+    out.push(list("bootstrap_sources", lines($("bootstrap").value), 2));
+    out.push("");
+    out.push("provider:");
+    out.push(`  name: ${$("provider_name").value}`);
+    out.push(`  model: ${q($("provider_model").value)}`);
+    out.push("");
+    out.push("delivery:");
+    out.push(`  gateway: ${$("gateway").value}`);
+    out.push(`  to: ${q($("to").value)}`);
+    out.push("");
+    out.push("output:");
+    out.push(`  max_stories: ${parseInt($("max_stories").value, 10) || 12}`);
+    out.push("  " + list("sections", commas($("sections").value), 4).replace(/\n/g, "\n  "));
+    out.push(`  summary_length: ${$("summary_length").value}`);
+    out.push("");
+    out.push(`style: ${q($("style").value || "clear and neutral")}`);
+    out.push("");
+    return out.join("\n");
+  }
+
+  function build() {
+    $("out").textContent = buildYaml();
+    flash("Generated ✓");
+  }
+  function copyOut() {
+    navigator.clipboard.writeText(buildYaml()).then(() => flash("Copied ✓"));
+  }
+  function download() {
+    const blob = new Blob([buildYaml()], { type: "text/yaml" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "config.yml";
+    a.click();
+    flash("Downloaded ✓");
+  }
+  function flash(msg) {
+    const s = $("status"); s.textContent = msg;
+    setTimeout(() => { s.textContent = ""; }, 2500);
+  }
+  build();
+</script>
+</body>
+</html>

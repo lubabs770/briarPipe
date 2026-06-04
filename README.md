@@ -3,11 +3,14 @@
 **be your own newsboy!**
 
 briarPipe turns a repo + your own AI provider key into a personal, AI-curated
-newspaper. You describe your interests once;
-
-on a schedule it reads from a source
-base *it maintains for you*, writes an edition in the voice you choose, and delivers
+newspaper. You describe your interests once; 
+on a schedule it reads from a source base  *it maintains for you*, writes an edition in the voice you choose, and delivers
 it. 
+
+
+<img width="3456" height="4955" alt="Screenshot 2026-06-04 at 13-08-07" src="https://github.com/user-attachments/assets/8f3e435b-a07c-4fd2-b4cc-abec37e5723c" />
+
+
 
 It never aimlessly scrapes the web — a configurable slice of the token budget
 (default ~1/5) is spent **cultivating** the source base, the rest **curating** from it.

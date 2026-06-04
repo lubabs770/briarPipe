@@ -16,7 +16,7 @@
 
 ## Quick start
 
-**1. Get the setup form** (no clone, no YAML knowledge needed):
+**1. Clone and open the setup form** (no YAML knowledge needed):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh | bash
@@ -24,9 +24,10 @@ curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh
 
 <br>
 
-This serves the form on `localhost` and opens it. Fill it in, then save the result
-as **`config.yml`** in your fork and commit it. (Prefer editing by hand? Copy
-[`config.example.yml`](config.example.yml) to `config.yml`.)
+This clones the repo into `~/briarPipe`, then serves the form on `localhost` and
+opens it. Fill it in, save the result as **`config.yml`** in that clone, and commit
+it. (Prefer editing by hand? Copy [`config.example.yml`](config.example.yml) to
+`config.yml`.)
 
 **2. Add your AI key** as a secret. On GitHub:
 *Settings → Secrets and variables → Actions →* `ANTHROPIC_API_KEY`.

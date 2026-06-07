@@ -152,3 +152,15 @@ def test_apply_secrets_does_not_override_environment(tmp_path):
 def test_secrets_must_be_mapping(tmp_path):
     with pytest.raises(ConfigError, match="secrets"):
         load_config(_write(tmp_path, "interests: x\nsecrets:\n  - nope\n"))
+
+
+def test_output_save_to_defaults_to_none(tmp_path):
+    cfg = load_config(_write(tmp_path, "interests: x\n"))
+    assert cfg.output.save_to is None
+
+
+def test_output_save_to_is_parsed(tmp_path):
+    cfg = load_config(
+        _write(tmp_path, "interests: x\noutput:\n  save_to: ~/news\n")
+    )
+    assert cfg.output.save_to == "~/news"

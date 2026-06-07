@@ -16,7 +16,9 @@ Phases are held to their slice of the token budget by :class:`BudgetTracker`.
 from __future__ import annotations
 
 import datetime as _dt
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable
 
 from . import sources as S
@@ -37,6 +39,21 @@ from .store import Store
 SOURCES_PATH = "state/sources.json"
 STATE_PATH = "STATE.md"
 MAX_SOURCES = 60  # keep the base small and deliberate
+
+# Environment markers that mean "this isn't your personal machine" — a CI runner
+# or hosted/cloud environment. GitHub Actions sets both CI and GITHUB_ACTIONS.
+# When any of these is present, ``output.save_to`` is skipped: dropping a file in
+# a user's home directory only makes sense on that user's own box.
+_CLOUD_ENV_MARKERS = (
+    "CI",
+    "GITHUB_ACTIONS",
+    "GITLAB_CI",
+    "CIRCLECI",
+    "BUILDKITE",
+    "JENKINS_URL",
+    "TF_BUILD",  # Azure Pipelines
+    "TRAVIS",
+)
 
 WINDOW_DAYS = {"daily": 2, "weekly": 8, "monthly": 32}
 
@@ -115,6 +132,18 @@ def run_pipeline(
     markdown = render_markdown(edition_data)
     path = store.write_text(edition_path(today), markdown)
     result.edition_path = path
+
+    # Optional: drop a copy into a local directory of the user's choosing — but
+    # only on a personal machine, never on a CI/cloud runner.
+    if config.output.save_to:
+        saved = _save_local_copy(config.output.save_to, today, markdown)
+        if saved:
+            result.notes.append(f"saved local copy to {saved}")
+        else:
+            result.notes.append(
+                f"output.save_to set ({config.output.save_to}) but skipped — "
+                "not running on a local machine"
+            )
 
     store.write_json(SOURCES_PATH, S.sources_to_json(base))
     if state_digest.strip():
@@ -203,6 +232,35 @@ def _cultivate(
 
 
 # --- helpers -----------------------------------------------------------------
+
+
+def running_locally(env: dict[str, str] | None = None) -> bool:
+    """True when running on a personal machine rather than CI/cloud.
+
+    ``CI`` is honoured as a truthy flag (GitHub Actions, etc. set ``CI=true``);
+    the other markers count by mere presence.
+    """
+    env = os.environ if env is None else env
+    if str(env.get("CI", "")).strip().lower() in {"1", "true", "yes", "on"}:
+        return False
+    return not any(env.get(marker) for marker in _CLOUD_ENV_MARKERS)
+
+
+def _save_local_copy(
+    save_to: str, date: str, markdown: str, *, env: dict[str, str] | None = None
+) -> str | None:
+    """Write a copy of the edition into ``save_to`` and return the full path.
+
+    Returns ``None`` (writing nothing) when not running on a local machine, so
+    the same committed config is a no-op on CI/cloud hosts.
+    """
+    if not running_locally(env):
+        return None
+    dest_dir = Path(save_to).expanduser()
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / f"{date}.md"
+    dest.write_text(markdown, encoding="utf-8")
+    return str(dest)
 
 
 def _fit_candidates(

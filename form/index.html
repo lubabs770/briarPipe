@@ -139,6 +139,8 @@ https://lobste.rs/</textarea>
       </div>
       <label>Sections <span class="hint">— comma separated</span></label>
       <input id="sections" value="Headlines, Deep Dive, Worth a Click" />
+      <label>Save copies to <span class="hint">— optional local folder; only used on your own machine, ignored on GitHub Actions / cloud. '~' is expanded.</span></label>
+      <input id="save_to" placeholder="e.g. ~/Documents/briarpipe" value="" />
     </fieldset>
 
     <fieldset>
@@ -307,6 +309,8 @@ https://lobste.rs/</textarea>
     out.push(`  max_stories: ${parseInt($("max_stories").value, 10) || 12}`);
     out.push("  " + list("sections", commas($("sections").value), 4).replace(/\n/g, "\n  "));
     out.push(`  summary_length: ${$("summary_length").value}`);
+    const saveTo = $("save_to").value.trim();
+    if (saveTo) out.push(`  save_to: ${q(saveTo)}`);
     out.push("");
     out.push(`style: ${q($("style").value || "clear and neutral")}`);
     out.push("");

@@ -134,3 +134,66 @@ def test_fallback_edition_when_model_returns_garbage(tmp_path):
     assert result.published is True
     md = (tmp_path / "editions" / "2026-06-04.md").read_text()
     assert "editor unavailable" in md
+
+
+# Markers that mean "not a local machine" — GitHub Actions sets both CI and
+# GITHUB_ACTIONS, so a local run must have all of these unset.
+_CI_VARS = (
+    "CI", "GITHUB_ACTIONS", "GITLAB_CI", "CIRCLECI",
+    "BUILDKITE", "JENKINS_URL", "TF_BUILD", "TRAVIS",
+)
+
+
+def test_saves_local_copy_when_configured_and_running_locally(tmp_path, monkeypatch):
+    for var in _CI_VARS:
+        monkeypatch.delenv(var, raising=False)
+    save_dir = tmp_path / "Documents" / "news"
+    cfg = _config()
+    cfg.output.save_to = str(save_dir)
+
+    result = run_pipeline(
+        cfg,
+        LocalStore(tmp_path),
+        FakeProvider(),
+        now=dt.datetime(2026, 6, 4, 9, 0),
+        fetch=_fetch,
+        parse_feed=_parse_feed,
+    )
+
+    saved = save_dir / "2026-06-04.md"
+    assert saved.exists()
+    assert "Big news" in saved.read_text()
+    assert any("saved local copy" in n for n in result.notes)
+
+
+def test_skips_local_copy_under_ci(tmp_path, monkeypatch):
+    monkeypatch.setenv("CI", "true")
+    save_dir = tmp_path / "Documents" / "news"
+    cfg = _config()
+    cfg.output.save_to = str(save_dir)
+
+    result = run_pipeline(
+        cfg,
+        LocalStore(tmp_path),
+        FakeProvider(),
+        now=dt.datetime(2026, 6, 4, 9, 0),
+        fetch=_fetch,
+        parse_feed=_parse_feed,
+    )
+
+    assert not (save_dir / "2026-06-04.md").exists()
+    assert any("save_to" in n and "skipped" in n for n in result.notes)
+
+
+def test_no_local_copy_when_save_to_unset(tmp_path, monkeypatch):
+    for var in _CI_VARS:
+        monkeypatch.delenv(var, raising=False)
+    result = run_pipeline(
+        _config(),
+        LocalStore(tmp_path),
+        FakeProvider(),
+        now=dt.datetime(2026, 6, 4, 9, 0),
+        fetch=_fetch,
+        parse_feed=_parse_feed,
+    )
+    assert not any("local copy" in n for n in result.notes)

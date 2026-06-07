@@ -67,6 +67,11 @@ output:
     - Deep Dive
     - Worth a Click
   summary_length: medium  # short | medium | long
+  # Optional: when running on your OWN machine (laptop/cron/Docker — not GitHub
+  # Actions or any cloud/CI), also drop a copy of each edition here as
+  # <date>.md. '~' is expanded. Skipped automatically on CI/cloud, so it's safe
+  # to commit. The canonical edition still lands in editions/ either way.
+  # save_to: ~/Documents/briarpipe
 
 # Voice of your AI editor. Free text — write it however you'd enjoy reading it.
 # e.g. "funny", "relaxed and conversational", "stiff & formal", "80's radio DJ".

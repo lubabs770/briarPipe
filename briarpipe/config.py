@@ -79,6 +79,11 @@ class Output:
     max_stories: int = 12
     sections: list[str] = field(default_factory=lambda: ["Headlines"])
     summary_length: str = "medium"
+    # Optional local directory to also drop a copy of each edition into when
+    # running on your own machine (skipped under CI/cloud). ``~`` is expanded at
+    # save time. ``None`` means "don't" — the canonical edition still lands in
+    # ``editions/`` via the store regardless.
+    save_to: str | None = None
 
 
 @dataclass
@@ -174,10 +179,13 @@ class Config:
             raise ConfigError(
                 f"'output.summary_length' must be one of {VALID_SUMMARY_LENGTHS}"
             )
+        save_to_raw = out_raw.get("save_to")
+        save_to = str(save_to_raw).strip() if save_to_raw else None
         output = Output(
             max_stories=_positive_int(out_raw, "max_stories", 12),
             sections=_str_list(out_raw.get("sections"), default=["Headlines"]),
             summary_length=summary_length,
+            save_to=save_to or None,
         )
 
         return cls(

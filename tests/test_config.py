@@ -154,13 +154,20 @@ def test_secrets_must_be_mapping(tmp_path):
         load_config(_write(tmp_path, "interests: x\nsecrets:\n  - nope\n"))
 
 
-def test_output_save_to_defaults_to_none(tmp_path):
+def test_delivery_save_to_defaults_to_none(tmp_path):
     cfg = load_config(_write(tmp_path, "interests: x\n"))
-    assert cfg.output.save_to is None
+    assert cfg.delivery.save_to is None
 
 
-def test_output_save_to_is_parsed(tmp_path):
+def test_delivery_save_to_is_parsed(tmp_path):
     cfg = load_config(
-        _write(tmp_path, "interests: x\noutput:\n  save_to: ~/news\n")
+        _write(tmp_path, "interests: x\ndelivery:\n  save_to: ~/news\n")
     )
-    assert cfg.output.save_to == "~/news"
+    assert cfg.delivery.save_to == "~/news"
+
+
+def test_delivery_save_to_does_not_leak_into_options(tmp_path):
+    cfg = load_config(
+        _write(tmp_path, "interests: x\ndelivery:\n  save_to: ~/news\n")
+    )
+    assert "save_to" not in cfg.delivery.options

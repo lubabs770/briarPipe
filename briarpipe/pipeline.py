@@ -42,8 +42,8 @@ MAX_SOURCES = 60  # keep the base small and deliberate
 
 # Environment markers that mean "this isn't your personal machine" — a CI runner
 # or hosted/cloud environment. GitHub Actions sets both CI and GITHUB_ACTIONS.
-# When any of these is present, ``output.save_to`` is skipped: dropping a file in
-# a user's home directory only makes sense on that user's own box.
+# When any of these is present, ``delivery.save_to`` is skipped: dropping a file
+# in a user's home directory only makes sense on that user's own box.
 _CLOUD_ENV_MARKERS = (
     "CI",
     "GITHUB_ACTIONS",
@@ -135,13 +135,13 @@ def run_pipeline(
 
     # Optional: drop a copy into a local directory of the user's choosing — but
     # only on a personal machine, never on a CI/cloud runner.
-    if config.output.save_to:
-        saved = _save_local_copy(config.output.save_to, today, markdown)
+    if config.delivery.save_to:
+        saved = _save_local_copy(config.delivery.save_to, today, markdown)
         if saved:
             result.notes.append(f"saved local copy to {saved}")
         else:
             result.notes.append(
-                f"output.save_to set ({config.output.save_to}) but skipped — "
+                f"delivery.save_to set ({config.delivery.save_to}) but skipped — "
                 "not running on a local machine"
             )
 

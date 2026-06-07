@@ -71,6 +71,11 @@ class Provider:
 class Delivery:
     gateway: str = "markdown"
     to: str | None = None
+    # Optional local directory to also drop a copy of each edition into when
+    # running on your own machine (skipped under CI/cloud). ``~`` is expanded at
+    # save time. ``None`` means "don't" — the canonical edition still lands in
+    # ``editions/`` via the store regardless.
+    save_to: str | None = None
     # Gateway-specific extras are kept verbatim for the gateway to interpret.
     options: dict[str, Any] = field(default_factory=dict)
 
@@ -80,11 +85,6 @@ class Output:
     max_stories: int = 12
     sections: list[str] = field(default_factory=lambda: ["Headlines"])
     summary_length: str = "medium"
-    # Optional local directory to also drop a copy of each edition into when
-    # running on your own machine (skipped under CI/cloud). ``~`` is expanded at
-    # save time. ``None`` means "don't" — the canonical edition still lands in
-    # ``editions/`` via the store regardless.
-    save_to: str | None = None
 
 
 @dataclass
@@ -165,10 +165,12 @@ class Config:
         del_raw = data.get("delivery") or {}
         if not isinstance(del_raw, dict):
             raise ConfigError("'delivery' must be a mapping")
-        known = {"gateway", "to"}
+        known = {"gateway", "to", "save_to"}
+        save_to_raw = del_raw.get("save_to")
         delivery = Delivery(
             gateway=str(del_raw.get("gateway", "markdown")).lower(),
             to=del_raw.get("to"),
+            save_to=str(save_to_raw).strip() if save_to_raw else None,
             options={k: v for k, v in del_raw.items() if k not in known},
         )
 
@@ -180,13 +182,10 @@ class Config:
             raise ConfigError(
                 f"'output.summary_length' must be one of {VALID_SUMMARY_LENGTHS}"
             )
-        save_to_raw = out_raw.get("save_to")
-        save_to = str(save_to_raw).strip() if save_to_raw else None
         output = Output(
             max_stories=_positive_int(out_raw, "max_stories", 12),
             sections=_str_list(out_raw.get("sections"), default=["Headlines"]),
             summary_length=summary_length,
-            save_to=save_to or None,
         )
 
         return cls(

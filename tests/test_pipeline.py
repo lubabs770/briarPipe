@@ -149,7 +149,7 @@ def test_saves_local_copy_when_configured_and_running_locally(tmp_path, monkeypa
         monkeypatch.delenv(var, raising=False)
     save_dir = tmp_path / "Documents" / "news"
     cfg = _config()
-    cfg.output.save_to = str(save_dir)
+    cfg.delivery.save_to = str(save_dir)
 
     result = run_pipeline(
         cfg,
@@ -170,7 +170,7 @@ def test_skips_local_copy_under_ci(tmp_path, monkeypatch):
     monkeypatch.setenv("CI", "true")
     save_dir = tmp_path / "Documents" / "news"
     cfg = _config()
-    cfg.output.save_to = str(save_dir)
+    cfg.delivery.save_to = str(save_dir)
 
     result = run_pipeline(
         cfg,

@@ -55,8 +55,14 @@ provider:
 # How the finished edition reaches you. A dated Markdown file is ALWAYS written
 # to editions/. Configure an extra gateway here for push delivery.
 delivery:
-  gateway: email          # email | markdown (markdown = repo file only)
+  gateway: email          # email = send it | markdown = no delivery, file only
   to: you@example.com
+  # Optional: when running on your OWN machine (laptop/cron/Docker — not GitHub
+  # Actions or any cloud/CI), also drop a copy of each edition here as
+  # <date>.md. '~' is expanded. Skipped automatically on CI/cloud, so it's safe
+  # to commit. Independent of the gateway above — email AND save a copy if you
+  # like. The canonical edition still lands in editions/ either way.
+  # save_to: ~/Documents/briarpipe
 
 # Shape of each edition.
 output:
@@ -66,11 +72,6 @@ output:
     - Deep Dive
     - Worth a Click
   summary_length: medium  # short | medium | long
-  # Optional: when running on your OWN machine (laptop/cron/Docker — not GitHub
-  # Actions or any cloud/CI), also drop a copy of each edition here as
-  # <date>.md. '~' is expanded. Skipped automatically on CI/cloud, so it's safe
-  # to commit. The canonical edition still lands in editions/ either way.
-  # save_to: ~/Documents/briarpipe
 
 # Voice of your AI editor. Free text — write it however you'd enjoy reading it.
 # e.g. "funny", "relaxed and conversational", "stiff & formal", "80's radio DJ".

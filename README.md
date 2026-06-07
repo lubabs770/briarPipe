@@ -16,7 +16,7 @@
 
 ## Quick start
 
-**1. Clone and open the setup form** (no YAML knowledge needed):
+**1. Clone and open the setup form**
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh | bash

@@ -1,15 +1,14 @@
 # briarPipe configuration — be your own newsboy!
 #
-# This file is normally produced for you by the form (run ./install.sh, or open
-# form/index.html), but you can also edit it by hand. Copy it to `config.yml`.
+# This is the single config for your paper. Edit it by hand, or generate it with
+# the form (run ./install.sh, or open form/index.html). It's safe to commit.
 #
-# Secrets: you can keep API keys / SMTP creds in this file (see the `secrets:`
-# block at the bottom) for a simple one-file local setup — but then DO NOT commit
-# it. `config.yml` is gitignored by default for that reason, and the environment /
-# Actions secrets always take precedence over anything in `secrets:`.
-#   • Local / cron / Docker: easiest to fill in `secrets:` and never push the file.
-#   • GitHub Actions: leave `secrets:` out, set them as Actions secrets, then
-#     commit the keyless config with `git add -f config.yml`. (See README.)
+# Secrets (AI key, SMTP creds) do NOT go in this file. Keep the `secrets:` block
+# at the bottom empty/commented and provide them through the environment instead:
+#   • Locally:        export LLM_API_KEY=... (or a .env, or your shell profile)
+#   • GitHub Actions: add them as repo Actions secrets (Settings → Secrets)
+# The environment always wins, so the same committed config works everywhere —
+# just leave the sensitive bits out of the file and set them as secrets.
 
 # What you want your paper to cover. Free text + optional topic tags; the more
 # specific, the better the curation.
@@ -46,7 +45,7 @@ bootstrap_sources:
 # Which AI writes your paper — bring your own. `base_url` is any OpenAI-compatible
 # endpoint (OpenAI, OpenRouter, Groq, Together, Mistral, DeepSeek, a local Ollama,
 # or Anthropic's OpenAI-compatible endpoint). The key is read from the env var named
-# by `api_key_env` (or the secrets: block below), never inline here.
+# by `api_key_env`, never inline here.
 provider:
   name: openai-compatible
   base_url: https://api.openai.com/v1   # e.g. https://openrouter.ai/api/v1, http://localhost:11434/v1
@@ -78,11 +77,12 @@ output:
 style: relaxed and curious, with a dry sense of humor
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Secrets (OPTIONAL). Only read when the matching environment variable is unset —
-# the environment / Actions secrets always win. Filling these in makes for a tidy
-# one-file local setup, but a file with real values here MUST NOT be committed.
-# Leave the whole block commented out (the default) to source secrets from the
-# environment instead, which is what GitHub Actions should do.
+# Secrets — leave these OUT of the committed file. Set them as environment
+# variables instead (locally) or as GitHub Actions secrets (in CI):
+#   LLM_API_KEY, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
+#
+# For a quick local-only setup you MAY uncomment and fill the block below — but
+# then do NOT commit those values. The environment always overrides anything here.
 #
 # secrets:
 #   api_key: sk-...                   # -> LLM_API_KEY (your AI provider key)

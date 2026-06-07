@@ -27,14 +27,15 @@ curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh
 This clones the repo into `~/briarPipe`, then serves the form on `localhost` and
 opens it.
 
-Fill it in, save the result as **`config.yml`** in that clone, and commit
-it. 
+Fill it in, save the result as **`config.yaml`** in that clone, and commit it.
 
-(Prefer editing by hand? Copy [`config.example.yml`](config.example.yml) to `config.yml`.)
+(Prefer editing by hand? Just edit [`config.yaml`](config.yaml) directly — it's the
+single, fully-commented config.)
 
-**3. Let it run.** The included GitHub Actions workflow runs daily and publishes
-when an edition is due. Each edition is committed to [`editions/`](editions/) and
-sent through your chosen delivery gateway.
+**3. Let it run.** Invoke `python run.py` on whatever schedule you like (cron,
+a systemd timer, Docker, …). It publishes only when an edition is due; each one
+is written to [`editions/`](editions/) and sent through your chosen delivery
+gateway.
 
 <br>
 
@@ -59,7 +60,7 @@ little at a time.
 
 ## Configuration
 
-See [`config.example.yml`](config.example.yml) for the full, commented schema. Key
+Everything lives in a single [`config.yaml`](config.yaml) — fully commented. Key
 fields: `interests`, `frequency` (daily/weekly/monthly), `token_budget`
 (`max_per_run`, `cultivation_fraction`), `bootstrap_sources`, `provider`, `delivery`,
 `output`, and `style` (your editor's voice).
@@ -77,66 +78,36 @@ provider:
 
 ## Secrets
 
-briarPipe reads secrets (the AI key, SMTP credentials) from **environment
-variables** — `LLM_API_KEY` (or whatever `provider.api_key_env` names), 
+`config.yaml` is safe to commit — **keep secrets out of it.** briarPipe reads the
+AI key and SMTP credentials from the **environment**: `LLM_API_KEY` (or whatever
+`provider.api_key_env` names), plus `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`,
+`SMTP_PASS`, `SMTP_FROM`.
 
-plus
-`SMTP_HOST`, 
-
-`SMTP_PORT`, 
-
-`SMTP_USER`,
-
-`SMTP_PASS`, 
-
-`SMTP_FROM`. 
-
-For convenience you
-can instead keep them in a `secrets:` block right in `config.yml`:
-
-```yaml
-secrets:
-  api_key: sk-...                   # -> LLM_API_KEY
-  smtp_host: smtp.example.com
-  smtp_user: you@example.com
-  smtp_password: app-password
+```sh
+export LLM_API_KEY=sk-...      # or keep them in a gitignored .env
+python run.py
 ```
-<br>
 
-Two rules make this safe:
-
-- **The environment always wins.** Values in `secrets:` are only used when the
-  matching variable is unset — so Actions secrets transparently override the file.
-- **A file with real secrets is never committed.** `config.yml` is **gitignored by
-  default** for exactly this reason; `config.example.yml` is the committed template.
-
-  
-
-**Pick your path:**
-
-| Host | What to do |
-| --- | --- |
-| Laptop / cron / Docker | Fill in `secrets:` (the form has fields). Never push `config.yml`. |
-| **GitHub Actions** | 1) Set keys as **Actions secrets**, not in the file. 2) Leave `secrets:` out of `config.yml`. 3) Commit the keyless config explicitly: `git add -f config.yml` (it's gitignored). |
-
-Either way, **do not put real keys in a file you then commit to a public repo.**
+For a quick local-only setup you *may* uncomment the `secrets:` block at the
+bottom of `config.yaml` and fill it in — but then don't commit that file. Either
+way **the environment always wins**, so values set as real environment variables
+(or Actions secrets) transparently override anything in the file.
 
 ## Running anywhere
 
-briarPipe's core is a plain `python run.py` with **no host-specific code** — GitHub
-Actions is just one adapter. Frequency is config-driven, so any host just needs to
-invoke it on a regular tick:
+briarPipe's core is a plain `python run.py` with **no host-specific code**.
+Frequency is config-driven, so any host just needs to invoke it on a regular tick:
 
 ```sh
 python run.py                 # publish if an edition is due
 python run.py --force         # publish regardless of schedule
-python run.py --store git     # commit results back (used in CI)
+python run.py --store git     # commit results back to the repo
 ```
 
-- **GitHub Actions** — included at [`.github/workflows/newspaper.yml`](.github/workflows/newspaper.yml).
+- **A laptop / VPS** — `pip install -r requirements.txt && python run.py` from
+  cron or a systemd timer.
 - **Docker / cron** — `docker build -t briarpipe .` then run it from any scheduler;
   see the [`Dockerfile`](Dockerfile).
-- **A laptop / VPS** — `pip install -r requirements.txt && python run.py`.
 
 State persistence lives behind a small store seam (`local` filesystem by default,
 `git` to commit back), so swapping in object storage later is one small module.
@@ -144,7 +115,7 @@ State persistence lives behind a small store seam (`local` filesystem by default
 ## Delivery
 
 A dated Markdown file is always written to `editions/`. Beyond that, pick a gateway
-in `config.yml` (`delivery.gateway`). **Email** is built in (SMTP via `SMTP_*`
+in `config.yaml` (`delivery.gateway`). **Email** is built in (SMTP via `SMTP_*`
 secrets; runs in dry-run mode until configured). The gateway interface is pluggable —
 WhatsApp/Telegram/webhooks slot in without touching the pipeline.
 
@@ -154,6 +125,40 @@ WhatsApp/Telegram/webhooks slot in without touching the pipeline.
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
 pytest
+```
+
+## GitHub Actions
+
+Want it to run itself in the cloud? Because secrets come from the environment,
+GitHub Actions needs no special config: commit your `config.yaml` with the
+sensitive fields left blank, add the keys under **Settings → Secrets and variables
+→ Actions** (`LLM_API_KEY`, and `SMTP_*` if you use email), and run
+`python run.py --store git` on a schedule so editions commit back to the repo. A
+minimal workflow:
+
+```yaml
+name: newspaper
+on:
+  schedule: [{ cron: "0 13 * * *" }]   # daily; run.py decides if an edition is due
+  workflow_dispatch:
+permissions:
+  contents: write                       # to commit editions + state back
+jobs:
+  curate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+        run: python run.py --store git
 ```
 
 ## License

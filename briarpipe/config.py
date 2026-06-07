@@ -1,12 +1,13 @@
-"""Load and validate a briarPipe ``config.yml``.
+"""Load and validate a briarPipe ``config.yaml``.
 
 The config is the single source of truth for an edition: what to cover, how often,
 how much to spend, who writes it and in what voice, and where it goes.
 
-API keys may optionally live in an OPTIONAL ``secrets:`` block for a one-file local
-setup, but the real environment / Actions secrets ALWAYS take precedence (see
-:meth:`Config.apply_secrets_to_env`). A file that carries real secrets must never be
-committed — ``config.yml`` is gitignored by default for exactly that reason.
+``config.yaml`` is meant to be committed; secrets stay out of it and come from the
+environment (env vars locally, Actions secrets in CI). For a quick local-only setup
+keys MAY live in an OPTIONAL ``secrets:`` block, but the real environment ALWAYS
+takes precedence (see :meth:`Config.apply_secrets_to_env`), and a file carrying real
+secrets should not be committed.
 """
 
 from __future__ import annotations

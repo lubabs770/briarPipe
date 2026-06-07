@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # briarPipe onboarding — clones the repo into your home directory and opens the
-# setup form so you can generate a config.yml without touching YAML.
+# setup form so you can generate a config.yaml without touching YAML.
 #
 #   curl -fsSL https://raw.githubusercontent.com/lubabs770/briarPipe/main/install.sh | bash
 #
@@ -66,7 +66,7 @@ sleep 1
 URL="http://localhost:$PORT/index.html"
 echo "briarPipe: cloned to $REPO_DIR"
 echo "briarPipe: setup form running at $URL"
-echo "Fill it in, save the result as config.yml in $REPO_DIR, then commit and push."
+echo "Fill it in, save the result as config.yaml in $REPO_DIR, then commit and push."
 echo "Press Ctrl-C to stop the form server."
 
 if command -v open >/dev/null 2>&1; then open "$URL"

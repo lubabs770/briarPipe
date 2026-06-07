@@ -6,7 +6,7 @@ from briarpipe.config import Config, ConfigError, load_config
 
 
 def _write(tmp_path, body):
-    p = tmp_path / "config.yml"
+    p = tmp_path / "config.yaml"
     p.write_text(textwrap.dedent(body), encoding="utf-8")
     return p
 

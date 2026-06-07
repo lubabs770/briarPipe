@@ -185,10 +185,10 @@ https://lobste.rs/</textarea>
 
     <fieldset>
       <legend>Secrets <span class="hint">— optional</span></legend>
-      <p class="warn">⚠ If you fill these in, the generated <code>config.yml</code> holds
-        live credentials. <strong>Don't commit or push it</strong> — it's gitignored by
-        default. On <strong>GitHub Actions</strong>, leave these blank and add them as
-        Actions secrets instead, then <code>git add -f config.yml</code> for the keyless file.</p>
+      <p class="warn">⚠ Leave these blank to keep <code>config.yaml</code> safe to commit, and
+        provide them through the environment instead — local env vars / a <code>.env</code>, or
+        <strong>GitHub Actions secrets</strong> in CI. If you do fill them in here, the generated
+        <code>config.yaml</code> holds live credentials, so <strong>don't commit it</strong>.</p>
       <label>AI provider API key <span class="hint">— or set it in your environment / Actions secrets</span></label>
       <input id="sec_api_key" type="password" autocomplete="off" placeholder="sk-… (leave blank to use the env var)" />
       <div class="row">
@@ -216,13 +216,13 @@ https://lobste.rs/</textarea>
     </fieldset>
 
     <div class="actions">
-      <button type="button" class="primary" onclick="build()">Generate config.yml</button>
+      <button type="button" class="primary" onclick="build()">Generate config.yaml</button>
       <button type="button" class="ghost" onclick="copyOut()">Copy</button>
       <button type="button" class="ghost" onclick="download()">Download</button>
       <span id="status" class="ok"></span>
     </div>
-    <p class="note">Save the result as <code>config.yml</code> in your briarPipe repo and commit it.</p>
-    <pre id="out">Fill in the form and click “Generate config.yml”.</pre>
+    <p class="note">Save the result as <code>config.yaml</code> in your briarPipe repo and commit it.</p>
+    <pre id="out">Fill in the form and click “Generate config.yaml”.</pre>
   </form>
 </div>
 
@@ -274,12 +274,11 @@ https://lobste.rs/</textarea>
     if (secrets.length) {
       out.push("#");
       out.push("# ⚠  THIS FILE CONTAINS SECRETS (see the secrets: block at the bottom).");
-      out.push("#    DO NOT commit or push it — config.yml is gitignored by default; keep it so.");
-      out.push("#    On GitHub Actions: remove secrets: here, set them as Actions secrets,");
-      out.push("#    then commit the keyless file with  git add -f config.yml");
+      out.push("#    DO NOT commit or push it. Prefer leaving secrets blank here and setting");
+      out.push("#    them as env vars / GitHub Actions secrets — the environment always wins.");
     } else {
-      out.push("# Keys can live in a secrets: block (local use only) or come from env vars /");
-      out.push("# Actions secrets, which always take precedence. None are stored here.");
+      out.push("# Safe to commit: no secrets stored here. Provide LLM_API_KEY / SMTP_* via env");
+      out.push("# vars locally or GitHub Actions secrets in CI — they always take precedence.");
     }
     out.push("");
     out.push(block("interests", interests, 0));
@@ -335,7 +334,7 @@ https://lobste.rs/</textarea>
     const blob = new Blob([buildYaml()], { type: "text/yaml" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "config.yml";
+    a.download = "config.yaml";
     a.click();
     flash("Downloaded ✓");
   }

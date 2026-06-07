@@ -7,8 +7,6 @@ venv/
 *.egg-info/
 .DS_Store
 
-# config.yml may hold secrets (an optional `secrets:` block) — never commit it by
-# accident. The committed template is config.example.yml. If you run on GitHub
-# Actions, keep secrets OUT of the file, set them as Actions secrets, then add the
-# keyless config explicitly with:  git add -f config.yml
-config.yml
+# config.yaml is meant to be committed — keep real secrets out of it and provide
+# them via the environment / Actions secrets instead (see config.yaml). A local
+# .env (gitignored above) is a handy place to keep them off the committed file.
